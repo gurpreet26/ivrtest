@@ -1,0 +1,202 @@
+const VoiceResponse = require('twilio').twiml.VoiceResponse;
+
+exports.welcome = function welcome() {
+  const voiceResponse = new VoiceResponse();
+
+  const gather = voiceResponse.gather({
+    action: '/routes/menu',
+    numDigits: '1',
+    method: 'POST',
+
+  });
+
+  gather.say(
+    'Thanks for calling Ultra modern clinic ' +
+    'Press 1    , this is Mrs Singh  .' +
+    'Press 2,   can you take this call on Mr Singh behalf,'+
+    'Press 3,    or hang up if mr singh is not available at this number',
+    {loop: 3}
+  );
+
+  return voiceResponse.toString();
+};
+
+exports.menu = function menu(digit) {
+  const optionActions = {
+    '1': mainCall,
+    '2': behalfCall,
+    '3': callEnd,
+    }; 
+
+  return (optionActions[digit])
+    ? optionActions[digit]()
+    : redirectWelcome();
+};
+
+
+
+/**
+ * Returns a TwiML to interact with the client
+ * @return {String}
+ */
+ function mainCall() {
+  const twiml = new VoiceResponse();
+
+  const gather = twiml.gather({
+    action: '/routes/clientInput',
+    numDigits: '1',
+    method: 'POST',
+  });
+
+  gather.say(
+    'you have an appointment with ultra modern clinci'+
+    'Press 1, for appointment confirm    '+
+    'press 2, for re-schedule your apoointment',
+    {voice: 'alice', language: 'en-GB', loop: 3}
+  );
+
+  return twiml.toString();
+}
+exports.clientInput = function clientInput(digit) {
+  const optionActions = {
+    '1': confirmation,
+    '2': re_schedule,
+    };
+  
+   
+    if (optionActions[digit]) {
+      const twiml = new VoiceResponse();
+      return twiml.toString();
+    }
+};
+
+  exports.confirmation=function confirmation() {
+    const twiml = new VoiceResponse();
+  
+    twiml.say(
+      'your appointment is confirmed with ultra modern clinic.'+
+      'please bring protective mask and gloves with you',
+      {voice: 'alice', language: 'en-GB'}
+    );
+  
+    twiml.say(
+      'Thank you for connecting with ultra modern clinic ' +
+      'you have very good day'
+    );
+  
+    twiml.hangup();
+  
+    return twiml.toString();
+  }
+  exports.re_schedule = function re_schedule() {
+    const twiml = new VoiceResponse();
+  
+    twiml.say(
+      'your appointment re-scheducle for that you need to connect our office',
+      {voice: 'alice', language: 'en-GB'}
+    );
+  
+    twiml.say(
+      'Thank you for connecting with ultra modern clinic ' +
+      'you have very good day'
+    );
+  
+    twiml.hangup();
+  
+    return twiml.toString();
+  }
+ 
+function behalfCall() {
+  const twiml = new VoiceResponse();
+
+  const gather = twiml.gather({
+    action: '/routes/clientInput',
+    numDigits: '1',
+    method: 'POST',
+  });
+
+  gather.say(
+    'you have an appointment with ultra modern clinci'+
+    'Press 1,for appointment confirmation'+
+    'press 2,for re-schedule your apoointment',
+    {voice: 'alice', language: 'en-GB', loop: 3}
+  );
+
+  return twiml.toString();
+}
+exports.clientInput = function clientInput(digit) {
+  const optionActions = {
+    '1': confirmation,
+    '2': re_schedule,
+    
+  };
+  return (optionActions[digit])
+    ? optionActions[digit]()
+    : redirectWelcome();
+};
+
+  function confirmation() {
+    const twiml = new VoiceResponse();
+  
+    twiml.say(
+      'your appointment is confirmed with ultra modern clinic.'+
+      'please bring protective mask and gloves with you',
+      {voice: 'alice', language: 'en-GB'}
+    );
+  
+    twiml.say(
+      'Thank you for connecting with ultra modern clinic ' +
+      'you have very good day'
+    );
+  
+    twiml.hangup();
+  
+    return twiml.toString();
+  }
+  function re_schedule() {
+    const twiml = new VoiceResponse();
+  
+    twiml.say(
+      'your appointment re-scheducle for that you need to connect our office',
+      {voice: 'alice', language: 'en-GB'}
+    );
+  
+    twiml.say(
+      'Thank you for connecting with ultra modern clinic ' +
+      'you have very good day'
+    );
+  
+    twiml.hangup();
+  
+    return twiml.toString();
+  }
+ 
+
+function callEnd() {
+  const twiml = new VoiceResponse();
+  twiml.say(
+    'Thank you very much, you have nice day ' 
+  );
+
+  twiml.hangup();
+
+  return twiml.toString();
+}
+
+
+/**
+ * Returns an xml with the redirect
+ * @return {String}
+ */
+function redirectWelcome() {
+  const twiml = new VoiceResponse();
+
+  twiml.say('Returning to the main menu', {
+    voice: 'alice',
+    language: 'en-GB',
+  });
+
+  twiml.redirect('/routes/welcome');
+
+  return twiml.toString();
+}
